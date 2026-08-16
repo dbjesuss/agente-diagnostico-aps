@@ -1,0 +1,19 @@
+# Entorno
+.venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Secretos
+.env
+
+# Datos
+data/raw/*
+data/interim/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+
+# Sistema
+.DS_Store
+Thumbs.db
+.vscode/
