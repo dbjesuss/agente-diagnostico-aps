@@ -17,3 +17,11 @@ data/interim/*
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Modelos y artefactos generados
+models/*
+!models/metadatos_aps.json
+
+# Figuras exportadas
+reports/figuras/*
+!reports/figuras/.gitkeep
