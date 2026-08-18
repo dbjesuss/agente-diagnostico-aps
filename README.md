@@ -15,6 +15,7 @@ Sobre 16.000 vehículos no vistos durante el entrenamiento, el sistema **reduce 
 - [El problema](#el-problema)
 - [Resultados](#resultados)
 - [El agente sobre la API de Claude](#el-agente-sobre-la-api-de-claude)
+- [Los datos](#los-datos)
 - [Cómo está organizado](#cómo-está-organizado)
 - [Decisiones metodológicas](#decisiones-metodológicas)
 - [Lo que este sistema no puede afirmar](#lo-que-este-sistema-no-puede-afirmar)
@@ -79,6 +80,28 @@ Los tres se corrigieron en la capa de herramientas y en las instrucciones del ag
 
 Ninguna herramienta de uso diario expone la falla registrada del equipo, aunque el dato exista en el conjunto de prueba. En operación, cuando hay que resolver si se envía un técnico, esa información todavía no existe. Solo la consulta la herramienta de evaluación retrospectiva, que además lo advierte en su propia salida.
 
+## Los datos
+
+**Registros reales de operación**, no simulados. El conjunto recoge lecturas de sensores de camiones pesados Scania en uso cotidiano, publicado por el fabricante para el *Industrial Challenge* de la conferencia IDA en 2016 y difundido después a través del repositorio de UCI Machine Learning. Se descarga desde Kaggle:
+
+**[APS Failure at Scania Trucks](https://www.kaggle.com/datasets/uciml/aps-failure-at-scania-trucks-data-set)**
+
+| | |
+|---|---|
+| Entrenamiento | 60.000 vehículos (59.000 sanos, 1.000 con falla de APS) |
+| Prueba | 16.000 vehículos |
+| Variables | 170 lecturas de sensores y contadores |
+| Prevalencia | 1 falla por cada 60 vehículos |
+| Licencia | GPL, incluida como cabecera en los propios archivos |
+
+La clase positiva corresponde a camiones con falla en un componente del sistema de aire comprimido; la negativa, a camiones con fallas en otros sistemas. La función de costo de 10 y 500 no es una suposición de este trabajo: viene publicada con el conjunto de datos por el propio fabricante.
+
+**Los nombres de las variables están anonimizados** por confidencialidad industrial: aparecen como `aa_000`, `ag_002`, `bt_000`. Siete de ellas no son mediciones simples sino histogramas —conjuntos de columnas que reparten las lecturas de un mismo sensor en rangos consecutivos—, identificables porque comparten prefijo. Esta anonimización limita la interpretación desde fuera de la empresa pero no el uso: dentro de la operación cada identificador corresponde a una medición conocida.
+
+Dos advertencias prácticas para quien reproduzca el trabajo. Los archivos anteponen a los datos una cabecera de licencia de extensión variable, por lo que la carga localiza la fila de encabezados en lugar de omitir un número fijo de líneas. Y **no deben usarse las versiones `_processed_8bit`** que acompañan a la descarga: son una transformación de terceros sin documentar, y este proyecto aplica su propio preprocesamiento.
+
+Los datos no se incluyen en el repositorio, por peso y porque redistribuirlos no corresponde. El paso 3 de la instalación indica dónde ubicarlos.
+
 ## Cómo está organizado
 
 ```
@@ -95,6 +118,7 @@ models/               Artefactos generados (excluidos del control de versiones)
 data/                 Datos de origen (excluidos del control de versiones)
 ```
 
+El análisis exploratorio tiene su propia documentación en [`readmeEDA.md`](readmeEDA.md).
 
 ### 1. Análisis exploratorio
 
@@ -171,14 +195,14 @@ python -m pip install -r requirements.txt
 python -m ipykernel install --user --name agente-diagnostico-aps --display-name "Python (agente-diagnostico-aps)"
 ```
 
-**3. Descargar los datos.** No se incluyen en el repositorio. Buscar el conjunto *APS Failure at Scania Trucks* y ubicar estos dos archivos en `data/raw/`:
+**3. Descargar los datos** desde [Kaggle](https://www.kaggle.com/datasets/uciml/aps-failure-at-scania-trucks-data-set) y ubicar estos dos archivos en `data/raw/`:
 
 ```
 aps_failure_training_set.csv
 aps_failure_test_set.csv
 ```
 
-No usar las versiones `_processed_8bit`: son una transformación de terceros sin documentar.
+No usar las versiones `_processed_8bit`. Ver la sección [Los datos](#los-datos) para el detalle.
 
 **4. Configurar la clave de API.** Crear un archivo `.env` en la raíz del proyecto con una sola línea:
 
@@ -233,5 +257,9 @@ Lo que este proyecto demuestra es que la información que una operación ya regi
 4. **Vigilar la proporción de equipos señalados.** Una desviación sostenida respecto del 4,7 % observado indica que las condiciones cambiaron y que conviene reentrenar.
 
 ---
+
+## Créditos
+
+Los datos pertenecen a Scania CV AB, que los publicó bajo licencia GPL para el *Industrial Challenge* de la conferencia IDA 2016. Este proyecto es un trabajo independiente sin relación con el fabricante ni con ninguna empresa.
 
 Jesús David Barrios Valdés — Ciencia de Datos, Universidad del Norte
